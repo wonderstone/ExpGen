@@ -1,6 +1,16 @@
 import numpy as np
 from scipy import stats
 
+# Information Coefficient (IC) and Rank Information Coefficient (RIC)
+# are two common metrics used to evaluate the performance of a predictive model.
+# IC measures the linear correlation between predicted and actual returns,
+# while RIC measures the rank correlation between predicted and actual returns.
+# However, the implementation of these indicators are different.
+# Some may even deverge from the standard definition, check following 
+# https://www.investopedia.com/terms/i/information-coefficient.asp
+
+
+## 1. IC and RIC fundemental functions
 def calculate_ic(predicted_returns, actual_returns):
     """Calculate Information Coefficient"""
     return np.corrcoef(predicted_returns, actual_returns)[0, 1]
@@ -9,19 +19,7 @@ def calculate_ric(predicted_returns, actual_returns):
     """Calculate Rank Information Coefficient"""
     return stats.spearmanr(predicted_returns, actual_returns)[0]
 
-# Example usage
-predicted_returns = np.array([0.05, 0.02, 0.03, 0.01, 0.04])
-actual_returns = np.array([0.04, 0.01, 0.03, 0.02, 0.05])
-
-ic = calculate_ic(predicted_returns, actual_returns)
-ric = calculate_ric(predicted_returns, actual_returns)
-
-print(f"Information Coefficient: {ic:.4f}")
-print(f"Rank Information Coefficient: {ric:.4f}")
-
-
-
-def calculate_ic1(predicted_returns, actual_returns):
+def calculate_ic_manual(predicted_returns, actual_returns):
     """
     Calculate Information Coefficient (Pearson correlation)
     
@@ -50,7 +48,7 @@ def calculate_ic1(predicted_returns, actual_returns):
     
     return ic
 
-def calculate_ric1(predicted_returns, actual_returns):
+def calculate_ric_manual(predicted_returns, actual_returns):
     """
     Calculate Rank Information Coefficient (Spearman's rank correlation)
     
@@ -83,12 +81,28 @@ def calculate_ric1(predicted_returns, actual_returns):
     
     return ric
 
-# Example usage
-predicted_returns = np.array([0.05, 0.02, 0.03, 0.01, 0.04])
-actual_returns = np.array([0.04, 0.01, 0.03, 0.02, 0.05])
 
-ic = calculate_ic1(predicted_returns, actual_returns)
-ric = calculate_ric1(predicted_returns, actual_returns)
 
-print(f"Information Coefficient: {ic:.4f}")
-print(f"Rank Information Coefficient: {ric:.4f}")
+if __name__ == "__main__":
+    # Example usage
+    predicted_returns = np.array([0.05, 0.02, 0.03, 0.01, 0.04])
+    actual_returns = np.array([0.04, 0.01, 0.03, 0.02, 0.05])
+
+    ic = calculate_ic(predicted_returns, actual_returns)
+    ric = calculate_ric(predicted_returns, actual_returns)
+
+    print(f"Information Coefficient: {ic:.4f}")
+    print(f"Rank Information Coefficient: {ric:.4f}")
+
+
+    icm = calculate_ic_manual(predicted_returns, actual_returns)
+    ricm = calculate_ric_manual(predicted_returns, actual_returns)
+
+    print(f"Information Coefficient: {icm:.4f}")
+    print(f"Rank Information Coefficient: {ricm:.4f}")
+
+    # output:
+    # Information Coefficient: 0.8000
+    # Rank Information Coefficient: 0.8000
+    # Information Coefficient: 0.8000
+    # Rank Information Coefficient: 0.8000
