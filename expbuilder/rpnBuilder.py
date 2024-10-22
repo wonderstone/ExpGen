@@ -1,11 +1,11 @@
 from typing import List, Callable
 from op import Optype
-from utils.RPN import RPNExpression
+from utils.RPN import RPNBase
 from tokens import *
 
 
 
-class RPNBuilder(RPNExpression):
+class RPNBuilder(RPNBase):
     def __init__(self, 
                  expression: List[Token],
                  default_ops: dict[str, tuple[Callable, int]],
@@ -35,12 +35,6 @@ class RPNBuilder(RPNExpression):
         self.tokenexp = expression
 
         super().__init__(strexp, default_ops, custom_ops)
-
-
-
-
-
-    
 
 
     def valid_next_token(self, data:dict) -> dict:
