@@ -222,10 +222,6 @@ if __name__ == "__main__":
     infix_str = karva_expr.to_string()
     print(f"Infix expression: {infix_str}")  
 
-    infix_str_original = karva_expr.to_string_original()
-    print(f"Infix expression original: {infix_str_original}") 
-
-
     # Evaluate the expression (x = 3)
     result = karva_expr.evaluate({'x': 3})  # This evaluates neg(3) + 2
     print(f"Evaluation result: {result}")  # Output: -0.7999999999999998

@@ -6,7 +6,9 @@
 from typing import List, Union, Callable
 import math
 
-from common import Expression
+from torch import Tensor
+
+from utils.common import Expression
 
 class InvalidExpressionError(Exception):
     pass
@@ -109,21 +111,6 @@ class RPNBase(Expression):
                 _, arity = self.ops[token]
                 expression = f"{token}({', '.join([stack.pop() for _ in range(arity)][::-1])})"
                 stack.append(expression)
-                # ~ the following code is for "+, -, *, /" myth(迷思) only
-                # if arity == 1:
-                #     a = stack.pop()
-                #     expression = f"{token}({a})"
-                #     stack.append(expression)
-                # elif arity == 2 and token in ['+', '-', '*', '/']:
-                #     # only binary operator and in +, -, *, / set would be considered
-                #     b = stack.pop()
-                #     a = stack.pop()
-                #     expression = f"({a} {token} {b})"
-                #     stack.append(expression)
-                # else:
-                #     # output = f"{token}({', '.join([stack.pop() for _ in range(arity)][::-1])})"
-                #     expression = f"{token}({', '.join([stack.pop() for _ in range(arity)][::-1])})"
-                #     stack.append(expression)
             elif isinstance(token, str):
                 # If it's a variable, push to stack
                 stack.append(token)
@@ -166,6 +153,9 @@ if __name__ == "__main__":
 
     def ternary_op(a, b, c):
         return a if a > b else c
+    
+    def tensorAdd(a : Tensor, b : Tensor):
+        return a + b
 
     # Define default supported operators with regular functions and their arity
 
@@ -195,6 +185,9 @@ if __name__ == "__main__":
     # = Evaluate the expression with x = 3
     result = rpn_expr.evaluate({'x': 3})
     print(f"Evaluation result with x=3: {result}")  # Output: -1.0
+    #~ print the divider line
+    print("-" * 20)
+
 
     # + Define an RPN expression with ternary operator: if x > y then x else z -> RPN: ['x', 'y', 'z', '?']
     # - Exp: ?(x, y, z)
@@ -204,6 +197,8 @@ if __name__ == "__main__":
     # = Evaluate the ternary expression with x = 5, y = 3, z = 10
     ternary_result = rpn_ternary_expr.evaluate({'x': 5, 'y': 3, 'z': 10})
     print(f"Evaluation result of ternary with x=5, y=3, z=10: {ternary_result}")  # Output: 5.0
+    #~ print the divider line
+    print("-" * 20)
 
     # + Define an RPN expression with variables: (-x + 2)** 3 -> RPN: ['x', 'Neg', 2, 'Add', 3, 'Pow']
     # - Exp: Pow(Add(Neg(x), 2), 3)
@@ -213,11 +208,24 @@ if __name__ == "__main__":
     # = Evaluate the expression with x = 4
     result = rpn_power_expr.evaluate({'x': 4})
     print(f"Evaluation result with x=4: {result}")  # Output: -8.0
-
+    #~ print the divider line
+    print("-" * 20)
 
     # + Define an RPN expression with variables: 2, 3, *, 4, +, 6 -> RPN: [2, 3, 'Add', 4, 6, 'Mul', 'Add']
     # - Exp: Add(Add(2, 3), Mul(4, 6))
     tmp_expr = RPNBase([2, 3, 'Add', 4, 6, 'Mul', 'Add'], DEFAULT_OPS)
     tmp_result = tmp_expr.evaluate()
+    print(f"{tmp_expr.to_string()}: {tmp_result}")
+    #~ print the divider line
+    print("-" * 20)
+
+    # + Define an RPN expression with variables: x, y, +, 2, * -> RPN: ['x', 'y', 'Add', 2, 'Mul']
+    # - Exp: Mul(Add(x, y), 2)
+    tmp_expr = RPNBase(['x', 'y', 'Add', 2, 'Mul'], DEFAULT_OPS)
+    tmp_result = tmp_expr.evaluate({'x': Tensor([1, 2]), 'y': Tensor([3, 4])})
+    # print the x and y
+    print(f"Tensor x: {Tensor([1, 2])}")
+    print(f"Tensor y: {Tensor([3, 4])}")
+    
     print(f"{tmp_expr.to_string()}: {tmp_result}")
 

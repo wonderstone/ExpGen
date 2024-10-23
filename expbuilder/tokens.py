@@ -1,5 +1,5 @@
 from typing import Type
-from op import Operator
+from expbuilder.op import Operator
 from enum import IntEnum
 
 class Token:
@@ -10,7 +10,6 @@ class SequenceIndicatorType(IntEnum):
     BEG = 0
     SEP = 1
 
-
 class ConstantToken(Token):
     def __init__(self, constant: float) -> None:
         self.constant = constant
@@ -19,8 +18,6 @@ class ConstantToken(Token):
 
     def Val(self):
         return self.constant
-
-
 
 class DeltaTimeToken(Token):
     def __init__(self, delta_time: int) -> None:
@@ -31,7 +28,6 @@ class DeltaTimeToken(Token):
     def Val(self):
         return self.delta_time
 
-
 class FeatureToken(Token):
     def __init__(self, feature: str) -> None:
         self.feature = feature
@@ -39,8 +35,7 @@ class FeatureToken(Token):
     def __str__(self): return '$' + self.feature.lower()
 
     def Val(self, kwargs: dict):
-        return kwargs[str(self)]
-
+        return kwargs[str(self.feature)]
 
 class OperatorToken(Token):
     def __init__(self, operator: Type[Operator]) -> None:
