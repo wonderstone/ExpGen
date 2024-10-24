@@ -1,7 +1,7 @@
 from enum import IntEnum
 from typing import Callable, List, Type
 
-class Optype(IntEnum):
+class OPType(IntEnum):
     CS = 1
     TS = 2
 
@@ -10,7 +10,7 @@ class Operator:
 
     def __init__(self, 
                  name: str,
-                 Optype: Optype,
+                 Optype: OPType,
                  callable: Callable, 
                  argTypeList: List[Type]):
         self.name = name
@@ -64,8 +64,8 @@ if __name__ == "__main__":
     print(r.calc(2,1))
 
     # try the Operator class
-    op_add = Operator(name="add", Optype=Optype.CS, callable=add, argTypeList=[float, int])
-    op_ref = Operator(name="ref", Optype=Optype.TS ,callable=r.calc, argTypeList=[float,int])
+    op_add = Operator(name="add", Optype=OPType.CS, callable=add, argTypeList=[float, int])
+    op_ref = Operator(name="ref", Optype=OPType.TS ,callable=r.calc, argTypeList=[float,int])
     print(op_add)
     print(f"Number of arguments: {op_add.n_args()}")
     print(f"Available operators: {Operator.ops_available}")

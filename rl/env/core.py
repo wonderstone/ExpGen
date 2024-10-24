@@ -12,9 +12,71 @@ from torch.backends import cudnn
 # the final output would be a RPN expression
 # the environment have a fixed dataset y = 2 * x + 1 + noise
 
+default_ops = {
+        '+': (lambda x, y: x + y, 2),
+        '-': (lambda x, y: x - y, 2),
+        '*': (lambda x, y: x * y, 2),
+        '/': (lambda x, y: x / y, 2),
+        'sin': (torch.sin, 1),
+        'cos': (torch.cos, 1),
+        'exp': (torch.exp, 1),
+    }
+
+default_ops_list = list(default_ops.keys())
+
+default_features = ["x" ]
+# DELTA_TIMES = [1, 2, 3, 4, 5]
+
+CONSTANTS = [-1., -0.5, -0.01, 0.01, 0.5, 1., 2.]
+
+REWARD_PER_STEP = 0.
 
 MAX_EXPR_LENGTH = 20
 MAX_EPISODE_LENGTH = 256
+
+
+SIZE_NULL = 1 # cause the first token is always a BEG_TOKEN
+SIZE_OP = len(default_ops_list)
+SIZE_FEATURE = len(default_features)
+# SIZE_DELTA_TIME = len(DELTA_TIMES)
+SIZE_CONSTANT = len(CONSTANTS)
+SIZE_SEP = 1
+
+# SIZE_ALL = SIZE_NULL + SIZE_OP + SIZE_FEATURE + SIZE_DELTA_TIME + SIZE_CONSTANT + SIZE_SEP
+SIZE_ALL = SIZE_NULL + SIZE_OP + SIZE_FEATURE + SIZE_CONSTANT + SIZE_SEP
+
+
+
+SIZE_ACTION = SIZE_ALL - SIZE_NULL
+
+OFFSET_OP = SIZE_NULL
+OFFSET_FEATURE = OFFSET_OP + SIZE_OP
+
+OFFSET_CONSTANT = OFFSET_FEATURE + SIZE_FEATURE
+# OFFSET_DELTA_TIME = OFFSET_FEATURE + SIZE_FEATURE
+# OFFSET_CONSTANT = OFFSET_DELTA_TIME + SIZE_DELTA_TIME
+OFFSET_SEP = OFFSET_CONSTANT + SIZE_CONSTANT
+
+
+def action_to_token(action_raw: int) -> Token:
+    action = action_raw + SIZE_NULL
+    if action < OFFSET_OP:
+        raise ValueError(f"Invalid action {action_raw}")
+    elif action < OFFSET_FEATURE:
+        return OperatorToken(default_ops_list[action - OFFSET_OP])
+    elif action < OFFSET_CONSTANT:
+        return FeatureToken(default_features[action - OFFSET_FEATURE])
+    elif action < OFFSET_SEP:
+        return ConstantToken(CONSTANTS[action - OFFSET_CONSTANT])
+    elif action == OFFSET_SEP:
+        return SEP_TOKEN
+    else:
+        raise ValueError(f"Invalid action {action_raw}")
+
+
+
+
+
 
 
 class RegressionEnv():
@@ -30,7 +92,7 @@ class RegressionEnv():
     
     def reset(self, seed: Optional[int] = None):
         reseed_everything(seed)
-        self._builder.tokenexp = [BEG_TOKEN]
+        self._builder.tokenList = [BEG_TOKEN]
 
 
     
@@ -38,8 +100,8 @@ class RegressionEnv():
         if (isinstance(action, SequenceIndicatorType) and action == SequenceIndicatorType.SEP):
             reward = self._evaluate()
             done = True
-        elif len(self._builder.tokenexp) < MAX_EXPR_LENGTH:
-            self._builder.add_token(data,action)
+        elif len(self._builder.tokenList) < MAX_EXPR_LENGTH:
+            self._builder.add_token_value(data,action)
             reward = 0
             done = False
         else:
@@ -48,7 +110,7 @@ class RegressionEnv():
         if math.isnan(reward):
             reward = -1
 
-        return self._builder.tokenexp, reward, done, self._builder.valid_next_token({'x': self.x, 'y': self.y})
+        return self._builder.tokenList, reward, done, self._builder.valid_next_token_value({'x': self.x, 'y': self.y})
     
     
     def _evaluate(self):
@@ -85,24 +147,15 @@ def reseed_everything(seed: Optional[int]):
 
 if __name__ == "__main__":
 
-    default_ops = {
-        '+': (lambda x, y: x + y, 2),
-        '-': (lambda x, y: x - y, 2),
-        '*': (lambda x, y: x * y, 2),
-        '/': (lambda x, y: x / y, 2),
-        'sin': (torch.sin, 1),
-        'cos': (torch.cos, 1),
-        'exp': (torch.exp, 1),
-    }
-
+    
     env = RegressionEnv(default_ops=default_ops, expression=[BEG_TOKEN], n_samples=100, noise=0.1)
     print(env.reset(seed = 666))
 
     data = {'x': env.x, 'y': env.y}
-    res =  env._builder.valid_next_token(data)
+    res =  env._builder.valid_next_token_value(data)
     print(res)
-    env._builder.add_token(data,ConstantToken(2))
-    env._builder.add_token(data,FeatureToken('x'))
+    env._builder.add_token_value(data,ConstantToken(2))
+    env._builder.add_token_value(data,FeatureToken('x'))
 
     print(env._builder.expression)
 
